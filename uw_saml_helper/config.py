@@ -19,7 +19,7 @@ class DefaultSp(object):
                     'binding': self.acs_binding
                 },
                 'x509cert': self.x509_cert,
-                'private_key': self.private_key
+                'privateKey': self.private_key
             }
         }
         return data
@@ -39,7 +39,7 @@ class IdpConfig(object):
             'strict': True,
             'idp': {
                 'entityId': self.entity_id,
-                'singleSingOnService': {
+                'singleSignOnService': {
                     'url': self.sso_url,
                     'binding': self.sso_binding
                 },
@@ -54,6 +54,7 @@ class IdpConfig(object):
                     'failOnAuthnContextMismatch': True
                 }
             })
+        return data
 
 
 class ListAttribute(str):
