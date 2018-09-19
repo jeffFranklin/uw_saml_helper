@@ -88,10 +88,11 @@ class UwIdp(IdpConfig):
         HJZeOLUIBvJu15GzcexuDDXe0kg7sHD6PbK0xzEF/QeXP/hXzMxR9kQXB/IR/b2k
         4ien+EM3eY/ueBcTZ95dgVM='''
     attribute_map = {
-        'eppn': 'urn:oid:1.3.6.1.4.1.5923.1.1.1.6',
-        'uwnetid': 'urn:oid:0.9.2342.19200300.100.1.1',
-        'affiliations': ListAttribute('urn:oid:1.3.6.1.4.1.5923.1.1.1.1'),
-        'groups': ListAttribute('urn:oid:1.3.6.1.4.1.5923.1.5.1.1')
+        'urn:oid:1.3.6.1.4.1.5923.1.1.1.6': 'eppn',
+        'urn:oid:0.9.2342.19200300.100.1.1': 'uwnetid',
+        'urn:oid:1.3.6.1.4.1.5923.1.1.1.1': ListAttribute('affiliations'),
+        'urn:oid:1.3.6.1.4.1.5923.1.5.1.1': ListAttribute('groups'),
+        'urn:oid:1.3.6.1.4.1.5923.1.1.1.9': ListAttribute('scoped_affiliations')
     }
 
 

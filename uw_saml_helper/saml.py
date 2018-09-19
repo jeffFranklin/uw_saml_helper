@@ -76,16 +76,16 @@ class SamlResponse(object):
     def __init__(self, attributes, idp, return_url=None):
         self.return_url = return_url
         mapped_attributes = defaultdict(list)
-        for key, value in attributes.items():
-            if key == idp.id_attribute:
-                self.username = value
+        for key, values in attributes.items():
+            if key == idp.id_attribute and values:
+                self.username = values[0]
             if key in idp.attribute_map:
                 mapped_key = idp.attribute_map[key]
                 if isinstance(mapped_key, ListAttribute):
-                    mapped_attributes[mapped_key].append(value)
-                else:
-                    mapped_attributes[mapped_key] = value
+                    mapped_attributes[mapped_key].extend(values)
+                elif values:
+                    mapped_attributes[mapped_key] = values[0]
             else:
-                mapped_attributes[key].append(value)
+                mapped_attributes[key].extend(values)
         self.attributes = mapped_attributes
 

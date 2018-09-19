@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect, jsonify
-from uw_saml_helper.saml import SamlHandler, FlaskRequest
+from uw_saml_helper import saml
 from urllib.parse import urlparse
 import os
 app = Flask(__name__)
@@ -8,13 +8,12 @@ app = Flask(__name__)
 ENTITY_ID = os.environ.get('ENTITY_ID')
 ACS_URL = os.environ.get('ACS_URL')
 ACS_PATH = urlparse(ACS_URL).path
-UW_SAML = SamlHandler(entity_id=ENTITY_ID, acs_url=ACS_URL,
-                      request_class=FlaskRequest)
+UW_SAML = saml.SamlHandler(entity_id=ENTITY_ID, acs_url=ACS_URL,
+                           request_class=saml.FlaskRequest)
 
 
 @app.route("/login")
 def hello():
-    app.logger.info('has it come to this')
     return redirect(UW_SAML.login_redirect_url(request))
 
 
