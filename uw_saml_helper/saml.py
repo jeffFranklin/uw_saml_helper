@@ -1,4 +1,4 @@
-from uw_saml_helper.config import DefaultSp, UwIdp, ListAttribute
+from uw_saml_helper.config import SpConfig, UwIdp, ListAttribute
 from collections import defaultdict
 from urllib.parse import urlparse
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
@@ -7,14 +7,9 @@ logger = getLogger(__name__)
 
 
 class SamlHandler(object):
-    def __init__(self, sp=None, idp=None, request_class=None, entity_id=None,
-                 acs_url=None):
+    def __init__(self, sp=None, idp=None, request_class=None):
         if not sp:
-            sp = DefaultSp()
-        if entity_id:
-            sp.entity_id = entity_id
-        if acs_url:
-            sp.acs_url = acs_url
+            sp = SpConfig()
         self.idp = idp or UwIdp()
         self.request_class = request_class or DjangoRequest
         config = sp.to_dict()
@@ -34,8 +29,10 @@ class SamlHandler(object):
         errors = auth.get_errors()
         if errors:
             raise Exception(auth.get_last_error_reason())
-        return vars(SamlResponse(attributes=auth.get_attributes(), idp=self.idp,
-                                 return_url=request.relay_state))
+        attributes = auth.get_attributes()
+        response = SamlResponse(attributes=attributes, idp=self.idp,
+                                return_url=request.relay_state)
+        return vars(response)
 
 
 class RequestBase(object):

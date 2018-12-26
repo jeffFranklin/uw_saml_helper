@@ -4,11 +4,3 @@ services:
         build: .
         volumes:
             - ./uw_saml_helper:/uw_saml_helper
-        environment:
-          - ENTITY_ID=https://identity.uw.edu/shibboleth
-          - ACS_URL=https://identity-dev.s.uw.edu/Shibboleth.sso/SAML2/POST
-    nginx:
-        image: nginx-proxy
-        ports:
-            - "80:80"
-            - "443:443"

@@ -1,13 +1,13 @@
-class DefaultSp(object):
-    entity_id = ''
-    acs_url = ''
-    acs_binding = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
-    x509_cert = ''
-    private_key = ''
+DEFAULT_BINDING = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
 
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+class SpConfig(object):
+    def __init__(self, entity_id='', acs_url='', acs_binding=DEFAULT_BINDING,
+                 x509_cert='', private_key=''):
+        self.entity_id = entity_id
+        self.acs_url = acs_url
+        self.acs_binding = acs_binding
+        self.x509_cert = x509_cert
+        self.private_key = private_key
 
     def to_dict(self):
         data = {
@@ -102,7 +102,7 @@ class UwIdpTwoFactor(UwIdp):
 
 class CascadiaStudentIdp(IdpConfig):
     entity_id = 'https://idp.cascadia.edu/idp/shibboleth'
-    sso_url = 'https://idp.student.cascadia.edu/idp/profile/Shibboleth/SSO'
+    sso_url = 'https://idp.student.cascadia.edu/idp/profile/SAML2/Redirect/SSO'
     id_attribute = 'urn:mace:washington.edu:dir:attribute-def:stu-validationID'
     x509_cert = '''
         MIIDTDCCAjSgAwIBAgIVAKF/idZbWozYUUVYSAZqNtoPhTTpMA0GCSqGSIb3DQEB
@@ -126,7 +126,7 @@ class CascadiaStudentIdp(IdpConfig):
 
 
 class CascadiaEmployeeIdp(CascadiaStudentIdp):
-    sso_url = 'https://idp.employee.cascadia.edu/idp/profile/Shibboleth/SSO'
+    sso_url = 'https://idp.employee.cascadia.edu/idp/profile/SAML2/Redirect/SSO'
     id_attribute = 'urn:mace:washington.edu:dir:attribute-def:emp-validationID'
 
 
