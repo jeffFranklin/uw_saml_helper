@@ -1,28 +1,23 @@
-DEFAULT_BINDING = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+from onelogin.saml2.auth import OneLogin_Saml2_Auth
+from urllib.parse import urlparse
+
 
 class SpConfig(object):
-    def __init__(self, entity_id='', acs_url='', acs_binding=DEFAULT_BINDING,
-                 x509_cert='', private_key=''):
-        self.entity_id = entity_id
-        self.acs_url = acs_url
-        self.acs_binding = acs_binding
-        self.x509_cert = x509_cert
-        self.private_key = private_key
+    ENTITY_ID = ''
+    ACS_URL = ''
+    CERT = ''
+    KEY = ''
 
-    def to_dict(self):
-        data = {
-            'strict': True,
-            'sp': {
-                'entityId': self.entity_id,
-                'assertionConsumerService': {
-                    'url': self.acs_url,
-                    'binding': self.acs_binding
-                },
-                'x509cert': self.x509_cert,
-                'privateKey': self.private_key
-            }
-        }
-        return data
+
+def configure_sp(entity_id='', acs_url='', cert_file='', key_file=''):
+    SpConfig.ENTITY_ID = entity_id
+    SpConfig.ACS_URL = acs_url
+    if cert_file:
+        with open(cert_file) as f:
+            SpConfig.CERT = f.read()
+    if key_file:
+        with open(key_file) as f:
+            SpConfig.KEY = f.read()
 
 
 class IdpConfig(object):
@@ -31,10 +26,52 @@ class IdpConfig(object):
     sso_binding = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
     x509_cert = ''
     id_attribute = 'urn:oid:1.3.6.1.4.1.5923.1.1.1.6'  # eppn
+    mapped_id_attribute = 'remote_user'
     attribute_map = {}
     is_two_factor = False
 
-    def to_dict(self):
+    def login_redirect(self, return_to='/'):
+        config = self._config
+        auth = OneLogin_Saml2_Auth({}, old_settings=self._config)
+        return auth.login(return_to=return_to)
+
+    def process_response(self, post_data):
+        request = self._request(post_data)
+        auth = OneLogin_Saml2_Auth(request, old_settings=self._config)
+        auth.process_response()
+        errors = auth.get_errors()
+        if errors:
+            raise Exception(auth.get_last_error_reason())
+        attribute_data = self._map_attributes(auth.get_attributes())
+        attribute_data['return_to'] = post_data.get('RelayState', '/')
+        return attribute_data
+
+    def _request(self, post_data=None):
+        post_data = post_data or {}
+        parsed_url = urlparse(SpConfig.ACS_URL)
+        return {
+            'https': 'on',
+            'http_host': parsed_url.netloc,
+            'script_name': parsed_url.path,
+            'post_data': post_data
+        }
+    
+    def _map_attributes(self, attribute_data):
+        def _map_item(item):
+            key, value = item
+            key = self.attribute_map.get(key, key)
+            is_list_value = isinstance(key, ListAttribute)
+            value = value[:] if is_list_value else value[0]
+            return key, value
+
+        mapped_attribute_data = dict(map(_map_item, attribute_data.items()))
+        id_values = attribute_data.get(self.id_attribute)
+        id_value = id_values[0] if id_values else None
+        mapped_attribute_data[self.mapped_id_attribute] = id_value
+        return mapped_attribute_data
+
+    @property
+    def _config(self):
         data = {
             'strict': True,
             'idp': {
@@ -44,6 +81,15 @@ class IdpConfig(object):
                     'binding': self.sso_binding
                 },
                 'x509cert': self.x509_cert
+            },
+            'sp': {
+                'entityId': SpConfig.ENTITY_ID,
+                'assertionConsumerService': {
+                    'url': SpConfig.ACS_URL,
+                    'binding': 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+                },
+                'x509cert': SpConfig.CERT,
+                'privateKey': SpConfig.KEY
             }
         }
         if self.is_two_factor:

@@ -2,9 +2,8 @@ import os
 import re
 from setuptools import setup, find_packages
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-VERSION_FILE = os.path.join(BASE_DIR, 'uw_saml_helper', 'VERSION')
 
-with open(VERSION_FILE) as f:
+with open(os.path.join(BASE_DIR, 'VERSION')) as f:
     VERSION = f.readlines()[-1].strip()
 
 with open(os.path.join(BASE_DIR, 'README.md')) as f:
@@ -19,7 +18,6 @@ setup(name='uw-saml-helper',
       long_description=LONG_DESCRIPTION,
       long_description_content_type='text/markdown',
       license='Apache License, Version 2.0',
-      packages=find_packages(),
-      include_package_data=True,
+      py_modules=['uw_saml_helper'],
       install_requires=['python3-saml']
       )
